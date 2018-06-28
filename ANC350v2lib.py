@@ -2,7 +2,7 @@
 #  ANC350lib is a Python implementation of the C++ header provided
 #     with the attocube ANC350 closed-loop positioner system.
 #
-#  It depends on anc350v2.dll which is provided by attocube in the
+#  It depends on hvpositionerv2.dll which is provided by attocube in the
 #     ANC350_DLL folders on the driver disc.
 #     This in turn requires nhconnect.dll and libusb0.dll. Place all
 #     of these in the same folder as this module (and that of ANC350lib).
@@ -16,8 +16,7 @@
 #
 
 
-import ctypes
-import time
+import ctypes, os, time
 #
 # List of error types
 #
@@ -35,36 +34,36 @@ NCB_NotSpecifiedParam = 8 #     Transferred parameter is out of specification
 
 
 #checks the errors returned from the dll
-def checkError(code,func,args):
+def checkError(code, func, args):
 	if code == NCB_Ok:
 		return
-	elif code == NCB_BootIgnored:	   
-		print "Warning: boot ignored in",func.__name__,"with parameters:",args
+	elif code == NCB_BootIgnored:
+		print("Warning: boot ignored in", func.__name__, "with parameters:", args)
 		return
-	elif code == NCB_Error:			 
-		raise Exception("Error: unspecific in"+str(func.__name__)+"with parameters:"+str(args))
-	elif code == NCB_Timeout:		   
-		raise Exception("Error: comm. timeout in"+str(func.__name__)+"with parameters:"+str(args))
-	elif code == NCB_NotConnected:	  
-		raise Exception("Error: not connected") 
-	elif code == NCB_DriverError:	   
-		raise Exception("Error: driver error") 
-	elif code == NCB_FileNotFound:	  
-		raise Exception("Error: file not found") 
-	elif code == NCB_InvalidParam:	  
+	elif code == NCB_Error:
+		raise Exception("Error: unspecific in" + str(func.__name__) + "with parameters:" + str(args))
+	elif code == NCB_Timeout:
+		raise Exception("Error: comm. timeout in" + str(func.__name__) + "with parameters:" + str(args))
+	elif code == NCB_NotConnected:
+		raise Exception("Error: not connected")
+	elif code == NCB_DriverError:
+		raise Exception("Error: driver error")
+	elif code == NCB_FileNotFound:
+		raise Exception("Error: file not found")
+	elif code == NCB_InvalidParam:
 		raise Exception("Error: invalid parameter")
-	elif code == NCB_DeviceLocked:	  
+	elif code == NCB_DeviceLocked:
 		raise Exception("Error: device locked")
-	elif code == NCB_NotSpecifiedParam: 
-		raise Exception("Error: unspec. parameter in"+str(func.__name__)+"with parameters:"+str(args))
-	else:					
-		raise Exception("Error: unknown in"+str(func.__name__)+"with parameters:"+str(args))
+	elif code == NCB_NotSpecifiedParam:
+		raise Exception("Error: unspec. parameter in" + str(func.__name__) + "with parameters:" + str(args))
+	else:
+		raise Exception("Error: unknown in" + str(func.__name__) + "with parameters:" + str(args))
 	return code
 
-#import dll
-anc350v2 = ctypes.windll.anc350v2
+# import dll
+hvpositionerv2 = ctypes.windll.LoadLibrary("hvpositionerv2.dll")
 
-#creates alias for c_int as "Int32" (I really don't know why)
+# creates alias for c_int as "Int32"
 Int32 = ctypes.c_int
 
 #structure for PositionerInfo to handle positionerCheck return data
@@ -73,70 +72,70 @@ class PositionerInfo(ctypes.Structure):
 				("locked",ctypes.c_bool)]
 
 #aliases for the strangely-named functions from the dll
-positionerAcInEnable = getattr(anc350v2,"_PositionerAcInEnable@12")
-positionerAmplitude = getattr(anc350v2,"_PositionerAmplitude@12")
-positionerAmplitudeControl = getattr(anc350v2,"_PositionerAmplitudeControl@12")
-positionerBandwidthLimitEnable = getattr(anc350v2,"_PositionerBandwidthLimitEnable@12")
-positionerCapMeasure = getattr(anc350v2,"_PositionerCapMeasure@12")
-positionerCheck = getattr(anc350v2,"_PositionerCheck@4")
-positionerClearStopDetection = getattr(anc350v2,"_PositionerClearStopDetection@8")
-positionerClose = getattr(anc350v2,"_PositionerClose@4")
-positionerConnect = getattr(anc350v2,"_PositionerConnect@8")
-positionerDcInEnable = getattr(anc350v2,"_PositionerDcInEnable@12")
-positionerDCLevel = getattr(anc350v2,"_PositionerDCLevel@12")
-positionerDutyCycleEnable = getattr(anc350v2,"_PositionerDutyCycleEnable@8")
-positionerDutyCycleOffTime = getattr(anc350v2,"_PositionerDutyCycleOffTime@8")
-positionerDutyCyclePeriod = getattr(anc350v2,"_PositionerDutyCyclePeriod@8")
-positionerExternalStepBkwInput = getattr(anc350v2,"_PositionerExternalStepBkwInput@12")
-positionerExternalStepFwdInput = getattr(anc350v2,"_PositionerExternalStepFwdInput@12")
-positionerExternalStepInputEdge = getattr(anc350v2,"_PositionerExternalStepInputEdge@12")
-positionerFrequency = getattr(anc350v2,"_PositionerFrequency@12")
-positionerGetAcInEnable = getattr(anc350v2,"_PositionerGetAcInEnable@12")
-positionerGetAmplitude = getattr(anc350v2,"_PositionerGetAmplitude@12")
-positionerGetBandwidthLimitEnable = getattr(anc350v2,"_PositionerGetBandwidthLimitEnable@12")
-positionerGetDcInEnable = getattr(anc350v2,"_PositionerGetDcInEnable@12")
-positionerGetDcLevel = getattr(anc350v2,"_PositionerGetDcLevel@12")
-positionerGetFrequency = getattr(anc350v2,"_PositionerGetFrequency@12")
-positionerGetIntEnable = getattr(anc350v2,"_PositionerGetIntEnable@12")
-positionerGetPosition = getattr(anc350v2,"_PositionerGetPosition@12")
-positionerGetReference = getattr(anc350v2,"_PositionerGetReference@16")
-positionerGetReferenceRotCount = getattr(anc350v2,"_PositionerGetReferenceRotCount@12")
-positionerGetRotCount = getattr(anc350v2,"_PositionerGetRotCount@12")
-positionerGetSpeed = getattr(anc350v2,"_PositionerGetSpeed@12")
-positionerGetStatus = getattr(anc350v2,"_PositionerGetStatus@12")
-positionerGetStepwidth = getattr(anc350v2,"_PositionerGetStepwidth@12")
-positionerIntEnable = getattr(anc350v2,"_PositionerIntEnable@12")
-positionerLoad = getattr(anc350v2,"_PositionerLoad@12")
-positionerMoveAbsolute = getattr(anc350v2,"_PositionerMoveAbsolute@16")
-positionerMoveAbsoluteSync = getattr(anc350v2,"_PositionerMoveAbsoluteSync@8")
-positionerMoveContinuous = getattr(anc350v2,"_PositionerMoveContinuous@12")
-positionerMoveReference = getattr(anc350v2,"_PositionerMoveReference@8")
-positionerMoveRelative = getattr(anc350v2,"_PositionerMoveRelative@16")
-positionerMoveSingleStep = getattr(anc350v2,"_PositionerMoveSingleStep@12")
-positionerQuadratureAxis = getattr(anc350v2,"_PositionerQuadratureAxis@12")
-positionerQuadratureInputPeriod = getattr(anc350v2,"_PositionerQuadratureInputPeriod@12")
-positionerQuadratureOutputPeriod = getattr(anc350v2,"_PositionerQuadratureOutputPeriod@12")
-positionerResetPosition = getattr(anc350v2,"_PositionerResetPosition@8")
-positionerSensorPowerGroupA = getattr(anc350v2,"_PositionerSensorPowerGroupA@8")
-positionerSensorPowerGroupB = getattr(anc350v2,"_PositionerSensorPowerGroupB@8")
-positionerSetHardwareId = getattr(anc350v2,"_PositionerSetHardwareId@8")
-positionerSetOutput = getattr(anc350v2,"_PositionerSetOutput@12")
-positionerSetStopDetectionSticky = getattr(anc350v2,"_PositionerSetStopDetectionSticky@12")
-positionerSetTargetGround = getattr(anc350v2,"_PositionerSetTargetGround@12")
-positionerSetTargetPos = getattr(anc350v2,"_PositionerSetTargetPos@16")
-positionerSingleCircleMode = getattr(anc350v2,"_PositionerSingleCircleMode@12")
-positionerStaticAmplitude = getattr(anc350v2,"_PositionerStaticAmplitude@8")
-positionerStepCount = getattr(anc350v2,"_PositionerStepCount@12")
-positionerStopApproach = getattr(anc350v2,"_PositionerStopApproach@8")
-positionerStopDetection = getattr(anc350v2,"_PositionerStopDetection@12")
-positionerStopMoving = getattr(anc350v2,"_PositionerStopMoving@8")
-positionerTrigger = getattr(anc350v2,"_PositionerTrigger@16")
-positionerTriggerAxis = getattr(anc350v2,"_PositionerTriggerAxis@12")
-positionerTriggerEpsilon = getattr(anc350v2,"_PositionerTriggerEpsilon@12")
-positionerTriggerModeIn = getattr(anc350v2,"_PositionerTriggerModeIn@8")
-positionerTriggerModeOut = getattr(anc350v2,"_PositionerTriggerModeOut@8")
-positionerTriggerPolarity = getattr(anc350v2,"_PositionerTriggerPolarity@12")
-positionerUpdateAbsolute = getattr(anc350v2,"_PositionerUpdateAbsolute@12")
+positionerAcInEnable = getattr(hvpositionerv2,"PositionerAcInEnable")
+positionerAmplitude = getattr(hvpositionerv2,"PositionerAmplitude")
+positionerAmplitudeControl = getattr(hvpositionerv2,"PositionerAmplitudeControl")
+positionerBandwidthLimitEnable = getattr(hvpositionerv2,"PositionerBandwidthLimitEnable")
+positionerCapMeasure = getattr(hvpositionerv2,"PositionerCapMeasure")
+positionerCheck = getattr(hvpositionerv2,"PositionerCheck")
+positionerClearStopDetection = getattr(hvpositionerv2,"PositionerClearStopDetection")
+positionerClose = getattr(hvpositionerv2,"PositionerClose")
+positionerConnect = getattr(hvpositionerv2,"PositionerConnect")
+positionerDcInEnable = getattr(hvpositionerv2,"PositionerDcInEnable")
+positionerDCLevel = getattr(hvpositionerv2,"PositionerDCLevel")
+positionerDutyCycleEnable = getattr(hvpositionerv2,"PositionerDutyCycleEnable")
+positionerDutyCycleOffTime = getattr(hvpositionerv2,"PositionerDutyCycleOffTime")
+positionerDutyCyclePeriod = getattr(hvpositionerv2,"PositionerDutyCyclePeriod")
+positionerExternalStepBkwInput = getattr(hvpositionerv2,"PositionerExternalStepBkwInput")
+positionerExternalStepFwdInput = getattr(hvpositionerv2,"PositionerExternalStepFwdInput")
+positionerExternalStepInputEdge = getattr(hvpositionerv2,"PositionerExternalStepInputEdge")
+positionerFrequency = getattr(hvpositionerv2,"PositionerFrequency")
+positionerGetAcInEnable = getattr(hvpositionerv2,"PositionerGetAcInEnable")
+positionerGetAmplitude = getattr(hvpositionerv2,"PositionerGetAmplitude")
+positionerGetBandwidthLimitEnable = getattr(hvpositionerv2,"PositionerGetBandwidthLimitEnable")
+positionerGetDcInEnable = getattr(hvpositionerv2,"PositionerGetDcInEnable")
+positionerGetDcLevel = getattr(hvpositionerv2,"PositionerGetDcLevel")
+positionerGetFrequency = getattr(hvpositionerv2,"PositionerGetFrequency")
+positionerGetIntEnable = getattr(hvpositionerv2,"PositionerGetIntEnable")
+positionerGetPosition = getattr(hvpositionerv2,"PositionerGetPosition")
+positionerGetReference = getattr(hvpositionerv2,"PositionerGetReference")
+positionerGetReferenceRotCount = getattr(hvpositionerv2,"PositionerGetReferenceRotCount")
+positionerGetRotCount = getattr(hvpositionerv2,"PositionerGetRotCount")
+positionerGetSpeed = getattr(hvpositionerv2,"PositionerGetSpeed")
+positionerGetStatus = getattr(hvpositionerv2,"PositionerGetStatus")
+positionerGetStepwidth = getattr(hvpositionerv2,"PositionerGetStepwidth")
+positionerIntEnable = getattr(hvpositionerv2,"PositionerIntEnable")
+positionerLoad = getattr(hvpositionerv2,"PositionerLoad")
+positionerMoveAbsolute = getattr(hvpositionerv2,"PositionerMoveAbsolute")
+positionerMoveAbsoluteSync = getattr(hvpositionerv2,"PositionerMoveAbsoluteSync")
+positionerMoveContinuous = getattr(hvpositionerv2,"PositionerMoveContinuous")
+positionerMoveReference = getattr(hvpositionerv2,"PositionerMoveReference")
+positionerMoveRelative = getattr(hvpositionerv2,"PositionerMoveRelative")
+positionerMoveSingleStep = getattr(hvpositionerv2,"PositionerMoveSingleStep")
+positionerQuadratureAxis = getattr(hvpositionerv2,"PositionerQuadratureAxis")
+positionerQuadratureInputPeriod = getattr(hvpositionerv2,"PositionerQuadratureInputPeriod")
+positionerQuadratureOutputPeriod = getattr(hvpositionerv2,"PositionerQuadratureOutputPeriod")
+positionerResetPosition = getattr(hvpositionerv2,"PositionerResetPosition")
+positionerSensorPowerGroupA = getattr(hvpositionerv2,"PositionerSensorPowerGroupA")
+positionerSensorPowerGroupB = getattr(hvpositionerv2,"PositionerSensorPowerGroupB")
+positionerSetHardwareId = getattr(hvpositionerv2,"PositionerSetHardwareId")
+positionerSetOutput = getattr(hvpositionerv2,"PositionerSetOutput")
+positionerSetStopDetectionSticky = getattr(hvpositionerv2,"PositionerSetStopDetectionSticky")
+positionerSetTargetGround = getattr(hvpositionerv2,"PositionerSetTargetGround")
+positionerSetTargetPos = getattr(hvpositionerv2,"PositionerSetTargetPos")
+positionerSingleCircleMode = getattr(hvpositionerv2,"PositionerSingleCircleMode")
+positionerStaticAmplitude = getattr(hvpositionerv2,"PositionerStaticAmplitude")
+positionerStepCount = getattr(hvpositionerv2,"PositionerStepCount")
+positionerStopApproach = getattr(hvpositionerv2,"PositionerStopApproach")
+positionerStopDetection = getattr(hvpositionerv2,"PositionerStopDetection")
+positionerStopMoving = getattr(hvpositionerv2,"PositionerStopMoving")
+positionerTrigger = getattr(hvpositionerv2,"PositionerTrigger")
+positionerTriggerAxis = getattr(hvpositionerv2,"PositionerTriggerAxis")
+positionerTriggerEpsilon = getattr(hvpositionerv2,"PositionerTriggerEpsilon")
+positionerTriggerModeIn = getattr(hvpositionerv2,"PositionerTriggerModeIn")
+positionerTriggerModeOut = getattr(hvpositionerv2,"PositionerTriggerModeOut")
+positionerTriggerPolarity = getattr(hvpositionerv2,"PositionerTriggerPolarity")
+positionerUpdateAbsolute = getattr(hvpositionerv2,"PositionerUpdateAbsolute")
 
 #set error checking & handling
 positionerAcInEnable.errcheck = checkError
