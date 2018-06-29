@@ -61,7 +61,10 @@ def checkError(code, func, args):
 	return code
 
 # import dll
-hvpositionerv2 = ctypes.windll.LoadLibrary("hvpositionerv2.dll")
+directory_of_this_module_and_dlls = os.path.dirname(os.path.realpath(__file__))
+current_directory = os.getcwd()
+os.chdir(directory_of_this_module_and_dlls)
+hvpositionerv2 = ctypes.windll.LoadLibrary(directory_of_this_module_and_dlls + "\\hvpositionerv2.dll")
 
 # creates alias for c_int as "Int32"
 Int32 = ctypes.c_int
